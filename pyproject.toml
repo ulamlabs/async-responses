@@ -12,7 +12,7 @@ keywords = ["aiohttp", "testing"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-aiohttp = "^3.3.1"
+aiohttp = ">=3.3.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7.9"
@@ -22,7 +22,6 @@ sphinx_rtd_theme = "^0.4.3"
 pytest-cov = "^2.8.1"
 mypy = "^0.770"
 pytest-aiohttp = "^0.3.0"
-pytest-mock = "^3.0.0"
 sphinx-autodoc-typehints = "^1.10.3"
 
 [build-system]

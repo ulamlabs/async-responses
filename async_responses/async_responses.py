@@ -1,7 +1,10 @@
-from typing import Callable, Union, List, Tuple, Type
+from typing import Callable, Union, List, Tuple
 from dataclasses import dataclass
+from unittest import mock
 
-from aiohttp import ClientResponse, StreamReader, ClientConnectionError
+from aiohttp import (
+    ClientSession, ClientResponse, StreamReader, ClientConnectionError
+)
 from aiohttp.client_proto import ResponseHandler
 from aiohttp.helpers import TimerNoop, URL
 from multidict import CIMultiDict, CIMultiDictProxy
@@ -26,20 +29,19 @@ class Call:
 
 class AsyncResponses:
 
-    def __init__(self, mock_module, loop, *, passthrough=[]):
+    def __init__(self, *, mock_module=None, passthrough=[]):
         self._responses = []
         self._calls = []
         self._passthrough = passthrough
-        self.mock_module = mock_module
-        self.loop = loop
-        self.mock = mock_module.patch(
+        self.mock_module = mock_module or mock
+        self.mock = self.mock_module.patch(
             'aiohttp.client.ClientSession._request',
             side_effect=self.handle,
             autospec=True,
         )
+        self.mock.start()
 
     def __enter__(self) -> 'AsyncResponses':
-        self.mock.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -116,8 +118,8 @@ class AsyncResponses:
             method,
             url,
             payload,
-            status=status,
-            response_class=orig_self._response_class
+            session=orig_self,
+            status=status
         )
 
         if callable(raise_for_status):
@@ -155,10 +157,10 @@ class AsyncResponses:
         url: str,
         payload: str,
         *,
-        status: int,
-        response_class: Type[ClientResponse]
+        session: ClientSession,
+        status: int
     ) -> ClientResponse:
-        response = response_class(
+        response = session._response_class(
             method,
             URL(url),
             request_info=self.mock_module.Mock(),
@@ -166,8 +168,8 @@ class AsyncResponses:
             continue100=None,
             timer=TimerNoop(),
             traces=[],
-            loop=self.loop,
-            session=None,  # type: ignore
+            loop=session.loop,
+            session=session
         )
         response._headers = CIMultiDictProxy(
             CIMultiDict({'Content-Type': 'application/json'})
@@ -176,7 +178,7 @@ class AsyncResponses:
         if status >= 400:
             response.reason = payload
 
-        response.content = StreamReader(ResponseHandler(self.loop))
+        response.content = StreamReader(ResponseHandler(session.loop))
         response.content.feed_data(str.encode(payload))
         response.content.feed_eof()
         return response

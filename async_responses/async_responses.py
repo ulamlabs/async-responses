@@ -10,12 +10,16 @@ from aiohttp.helpers import TimerNoop, URL
 from multidict import CIMultiDict, CIMultiDictProxy
 
 
+# Alias for everything that can be a handler
+AsyncResponsesHandler = Union[Callable, dict, str, Exception]
+
+
 @dataclass
 class Response:
     method: str
     hostname: str
     path: str
-    handler: Union[Callable, dict, str, Exception]
+    handler: AsyncResponsesHandler
     status: int
 
 
@@ -53,9 +57,19 @@ class AsyncResponses:
         return self._calls
 
     def add(
-            self, method: str, hostname: str, path: str,
-            handler: Union[Callable, dict, Exception], status: int = 200
+        self, method: str, hostname: str, path: str,
+        handler: AsyncResponsesHandler, status: int = 200
     ):
+        """
+        Mocks aiohttp response for the next request matching parameters.
+
+        :param method: HTTP method, for example ``get``
+        :param hostname: server hostname
+        :param path: path
+        :param handler: response, can be either a dict, string, callable or
+                        an exception
+        :param status: status code, defaults to 200
+        """
         if not path.startswith('/'):
             path = f'/{path}'
         self._responses.append(
@@ -63,15 +77,17 @@ class AsyncResponses:
         )
 
     def post(
-            self, hostname: str, path: str,
-            handler: Union[Callable, dict, Exception], status: int = 200
+        self, hostname: str, path: str,
+        handler: AsyncResponsesHandler, status: int = 200
     ):
+        """Shorthand for ``add('post', *args)``"""
         self.add('post', hostname, path, handler, status)
 
     def get(
-            self, hostname: str, path: str,
-            handler: Union[Callable, dict, Exception], status: int = 200
+        self, hostname: str, path: str,
+        handler: AsyncResponsesHandler, status: int = 200
     ):
+        """Shorthand for ``add('get', *args)``"""
         self.add('get', hostname, path, handler, status)
 
     def reset(self):
@@ -79,6 +95,10 @@ class AsyncResponses:
         self._calls.clear()
 
     def passthrough(self, pattern: str):
+        """
+        Adds passthrough. Requests to URLs which match the pattern won't be
+        mocked.
+        """
         self._passthrough.append(pattern)
 
     async def handle(

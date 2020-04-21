@@ -32,6 +32,12 @@ class Call:
 
 
 class AsyncResponses:
+    """
+    Async Responses context manager
+
+    :param passthrough: list of patterns of URLs which won't be mocked
+    :param mock_module: mock module, defaults to unittest.mock
+    """
 
     def __init__(self, *, mock_module=None, passthrough=[]):
         self._responses = []
@@ -54,7 +60,13 @@ class AsyncResponses:
 
     @property
     def calls(self) -> List['Call']:
+        """List of calls"""
         return self._calls
+
+    @property
+    def responses(self) -> List['Response']:
+        """List of responses"""
+        return self._responses
 
     def add(
         self, method: str, hostname: str, path: str,
@@ -76,25 +88,40 @@ class AsyncResponses:
             Response(method, hostname, path, handler, status)
         )
 
+    def patch(
+        self, hostname: str, path: str,
+        handler: AsyncResponsesHandler, status: int = 200
+    ) -> None:
+        """Mocks PATCH request. Shorthand for ``add('patch', *args)``"""
+        self.add('patch', hostname, path, handler, status)
+
     def post(
         self, hostname: str, path: str,
         handler: AsyncResponsesHandler, status: int = 200
-    ):
-        """Shorthand for ``add('post', *args)``"""
+    ) -> None:
+        """Mocks POST request. Shorthand for ``add('post', *args)``"""
         self.add('post', hostname, path, handler, status)
+
+    def put(
+        self, hostname: str, path: str,
+        handler: AsyncResponsesHandler, status: int = 200
+    ) -> None:
+        """Mocks PUT request. Shorthand for ``add('put', *args)``"""
+        self.add('put', hostname, path, handler, status)
 
     def get(
         self, hostname: str, path: str,
         handler: AsyncResponsesHandler, status: int = 200
-    ):
-        """Shorthand for ``add('get', *args)``"""
+    ) -> None:
+        """Mocks GET request. Shorthand for ``add('get', *args)``"""
         self.add('get', hostname, path, handler, status)
 
-    def reset(self):
+    def reset(self) -> None:
+        """Resets mock"""
         self._responses.clear()
         self._calls.clear()
 
-    def passthrough(self, pattern: str):
+    def passthrough(self, pattern: str) -> None:
         """
         Adds passthrough. Requests to URLs which match the pattern won't be
         mocked.

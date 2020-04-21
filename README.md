@@ -8,19 +8,19 @@ Async Responses is a library providing an easy way to mock aiohttp responses ins
 
 Library is available on PyPi, you can simply install it using `pip`.
 
-```
+```shell
 $ pip install async-responses
 ```
 
 ## Usage
 ### As an instance
-```
+```python
 ar = AsyncResponses()
 ar.get(...)
 ```
 
 ### As a context manager
-```
+```python
 with AsyncResponses() as ar:
     ar.get(...)
 ```
@@ -29,7 +29,7 @@ with AsyncResponses() as ar:
 Passing dict as `handler` argument to async-responses would result in it being
 returned as a JSON payload.
 
-```
+```python
 import aiohttp
 from async_responses import AsyncResponses
 
@@ -47,7 +47,7 @@ async def test_response():
 Calling Async Responses with an exception as `handler` argument would result in
 it being raised.
 
-```
+```python
 import aiohttp
 from async_responses import AsyncResponses
 import pytest
@@ -62,7 +62,7 @@ async def test_response():
 ```
 
 ### With string as handler
-```
+```python
 import aiohttp
 from async_responses import AsyncResponses
 
@@ -76,7 +76,7 @@ async def test_response():
 ```
 
 ### With callable as handler
-```
+```python
 import aiohttp
 from async_responses import AsyncResponses
 
@@ -93,7 +93,7 @@ async def test_response():
 ```
 
 ### With a custom status code
-```
+```python
 import aiohttp
 from async_responses import AsyncResponses
 
@@ -112,7 +112,7 @@ async def test_response():
 async-responses will make use of a response class passed as an argument to 
 ClientSession, so you can use things like custom JSON serializer.
 
-```
+```python
 import aiohttp
 
 async def test_response():

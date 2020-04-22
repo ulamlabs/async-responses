@@ -104,7 +104,7 @@ async def test_response():
     ar.get('http://mock.url', '/v1/status', handler=payload, status=500)
     async with aiohttp.ClientSession() as session:
         response = await session.get('http://mock.url/v1/status')
-        assert await respose.status == 500
+        assert response.status == 500
         assert await response.json() == payload
 ```
 
